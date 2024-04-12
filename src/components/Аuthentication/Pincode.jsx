@@ -20,7 +20,7 @@ export const authApi = axios.create({
 })
 
 async function postRegistrationConfirm(confirm_info) {
-  const { data } = await authApi.post('registration_confirm', confirm_info)
+  const { data } = await authApi.post('registration_confirm/', confirm_info)
   return data.access_token
 }
 

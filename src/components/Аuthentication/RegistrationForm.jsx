@@ -21,7 +21,7 @@ export const authApi = axios.create({
 })
 
 async function postRegistration(formData) {
-  const { data } = await authApi.post('registration', formData)
+  const { data } = await authApi.post('registration/', formData)
   return data.user
 }
 
@@ -115,11 +115,12 @@ const RegistrationForm = () => {
             />
             <TextField
               required
-              label='Введите email'
+              label='Введите номер телефона'
               name='email'
               value={formData.email}
               onChange={handleChange}
               error={error}
+              autoComplete='off'
             />
             <Button type='submit' variant='contained' disabled={isLoading}>
               {isLoading ? (
