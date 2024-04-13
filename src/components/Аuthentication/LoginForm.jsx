@@ -21,7 +21,7 @@ export const authApi = axios.create({
 })
 
 async function postAuth(formData) {
-  const { data } = await authApi.post('auth/', formData)
+  const { data } = await authApi.post('auth', formData)
   return data.user
 }
 

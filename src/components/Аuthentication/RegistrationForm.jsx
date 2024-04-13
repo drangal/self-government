@@ -21,7 +21,7 @@ export const authApi = axios.create({
 })
 
 async function postRegistration(formData) {
-  const { data } = await authApi.post('registration/', formData)
+  const { data } = await authApi.post('registration', formData)
   return data.user
 }
 
