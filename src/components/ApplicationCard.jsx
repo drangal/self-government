@@ -7,7 +7,6 @@ import {
   CardHeader
 } from '@mui/material'
 import axios from 'axios'
-import { useEffect, useState } from 'react'
 import { useQuery } from 'react-query'
 
 async function getAddressByCoordinates(coordinates) {
@@ -28,6 +27,8 @@ export const ApplicationCard = ({
   category,
   name_product,
   status,
+  price,
+  max_price,
   created_at,
   coordinates
 }) => {
@@ -69,7 +70,7 @@ export const ApplicationCard = ({
             Цена:
           </Typography>
           <Typography variant='body2' component='span' fontWeight='bold'>
-            {0} ₽
+            {price} ₽
           </Typography>
         </Box>
         <Box>
@@ -77,7 +78,7 @@ export const ApplicationCard = ({
             Макс. цена:
           </Typography>
           <Typography variant='body2' component='span' fontWeight='bold'>
-            {0} ₽
+            {max_price} ₽
           </Typography>
         </Box>
         <Typography

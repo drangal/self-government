@@ -10,7 +10,6 @@ import {
   InputLabel,
   LinearProgress,
   OutlinedInput,
-  Pagination,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -21,16 +20,18 @@ import {
 import { ApplicationCard } from './ApplicationCard'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search } from '@mui/icons-material'
+import { ChevronLeft, ChevronRight, Search } from '@mui/icons-material'
 import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion'
 import AssignmentLateIcon from '@mui/icons-material/AssignmentLate'
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline'
 import axios from 'axios'
 import { useQuery } from 'react-query'
+import PieActiveArc from './PieChart'
+import ComplaintsChart from './LineChart'
+import { ComplaintsTable } from './Tablet'
 
-const BASE_URL =
-  'https://6c3556cd2312afd6be3e3133b35830e3.serveo.net/applications/'
+const BASE_URL = 'http://172.16.0.151:8011/applications/'
 
 export const applicationsApi = axios.create({
   baseURL: BASE_URL,
@@ -42,15 +43,15 @@ applicationsApi.defaults.headers.common = {
 }
 
 async function getAllApplications(offset) {
-  const { data } = await applicationsApi.get(`getAll?limit=10&offset=${offset}`)
+  const { data } = await applicationsApi.get(`getAll?limit=6&offset=${offset}`)
   return data.applications
 }
 
 export const MainPage = () => {
-  const [page, setPage] = useState(0)
+  const [page, setPage] = useState(1)
   const { data, isLoading, isError } = useQuery(
     ['applications', page],
-    () => getAllApplications(page * 10),
+    () => getAllApplications((page - 1) * 6),
     { keepPreviousData: true }
   )
 
@@ -58,13 +59,18 @@ export const MainPage = () => {
   const [searchText, setSearchText] = useState('')
   const [filteredData, setFilteredData] = useState(data)
   const [statuses, setStatuses] = useState('')
+  const [tab, setTab] = useState()
 
   useEffect(() => {
     if (!localStorage.getItem('access_token')) navigate('/login')
   }, [])
 
-  const handlePaginationChange = (event, value) => {
-    setPage(value)
+  const handleClickApplicationTab = () => {
+    setTab()
+  }
+
+  const handleClickStatisticTab = () => {
+    setTab('stat')
   }
 
   const handleChange = (event) => {
@@ -92,7 +98,8 @@ export const MainPage = () => {
     <Box
       sx={{
         background:
-          'linear-gradient(348deg, rgba(238,174,202,1) 0%, rgba(202,179,214,1) 14%, rgba(148,187,233,1) 100%)'
+          'linear-gradient(348deg, rgba(238,174,202,1) 0%, rgba(202,179,214,1) 14%, rgba(148,187,233,1) 100%)',
+        minHeight: '100dvh'
       }}
     >
       <AppBar
@@ -121,11 +128,31 @@ export const MainPage = () => {
             </Button>
           </Tooltip>
         </Toolbar>
+        <Toolbar sx={{ display: 'flex' }}>
+          <Stack direction='row' alignItems='center'>
+            <Button
+              onClick={handleClickApplicationTab}
+              variant='outlined'
+              color='primary'
+              sx={{ mr: 2 }}
+            >
+              Заявки
+            </Button>
+            <Button
+              onClick={handleClickStatisticTab}
+              variant='outlined'
+              color='secondary'
+            >
+              Статистика
+            </Button>
+          </Stack>
+        </Toolbar>
       </AppBar>
       <Container
         maxWidth='lg'
         sx={{
-          mt: { xs: 1, sm: 2, md: 4 }
+          mt: { xs: 1, sm: 2, md: 4 },
+          display: tab && 'none'
         }}
       >
         <Stack
@@ -186,90 +213,65 @@ export const MainPage = () => {
             ))}
           </Stack>
         )}
-        <Pagination
-          count={Math.ceil(data?.lenght / 10) || 0}
-          page={page}
-          onChange={handlePaginationChange}
-          variant='outlined'
-          shape='rounded'
-          sx={{ mt: 2 }}
-        />
+        {statuses === '' && (
+          <Stack direction='row' spacing={2} alignItems='center'>
+            <IconButton
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page === 1}
+            >
+              <ChevronLeft />
+            </IconButton>
+            <IconButton
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={data?.length !== 6}
+            >
+              <ChevronRight />
+            </IconButton>
+          </Stack>
+        )}
+      </Container>
+      <Container
+        maxWidth='lg'
+        sx={{
+          mt: { xs: 1, sm: 2, md: 4 },
+          display: tab || 'none'
+        }}
+      >
+        <Box direction='column' alignItems={'center'}>
+          <Box textAlign={'center'}>
+            <Typography>Жалобы по торговым точкам</Typography>
+            <PieActiveArc
+              data={[
+                { id: 0, value: 10, label: 'Магазин 1' },
+                { id: 1, value: 15, label: 'Магазин 2' },
+                { id: 2, value: 20, label: 'Магазин 3' },
+                { id: 3, value: 2, label: 'Магазин 4' },
+                { id: 4, value: 8, label: 'Магазин 5' },
+                { id: 5, value: 1, label: 'Магазин 6' },
+                { id: 6, value: 30, label: 'Магазин 7' },
+                { id: 7, value: 30, label: 'Другие' }
+              ]}
+            />
+          </Box>
+          <Box textAlign={'center'}>
+            <Typography>Жалобы по товарам</Typography>
+            <PieActiveArc
+              data={[
+                { id: 0, value: 1, label: 'Товар 1' },
+                { id: 1, value: 15, label: 'Товар 2' },
+                { id: 2, value: 8, label: 'Товар 3' },
+                { id: 3, value: 2, label: 'Товар 4' },
+                { id: 4, value: 8, label: 'Товар 5' },
+                { id: 5, value: 10, label: 'Товар 6' },
+                { id: 6, value: 30, label: 'Товар 7' },
+                { id: 7, value: 1, label: 'Другие' }
+              ]}
+            />
+          </Box>
+          <ComplaintsChart />
+          <ComplaintsTable />
+        </Box>
       </Container>
     </Box>
   )
 }
-
-// const data = [
-//   {
-//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-//     storeName: 'Магазин 1',
-//     itemName: 'Товар 1',
-//     price: 100,
-//     maxPrice: 120,
-//     status: 'В рассмотрении'
-//   },
-//   {
-//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.pn',
-//     storeName: 'Магазин 2',
-//     itemName: 'Товар 1',
-//     price: 130,
-//     maxPrice: 120,
-//     status: 'Отклонена'
-//   },
-//   {
-//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-//     storeName: 'Магазин 3',
-//     itemName: 'Товар 1',
-//     price: 120,
-//     maxPrice: 120,
-//     status: 'Принята'
-//   },
-//   {
-//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-//     storeName: 'Магазин 3',
-//     itemName: 'Товар 1',
-//     price: 120,
-//     maxPrice: 120,
-//     status: 'Принята'
-//   },
-//   {
-//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-//     storeName: 'Магазин 3',
-//     itemName: 'Товар 1',
-//     price: 120,
-//     maxPrice: 120,
-//     status: 'Принята'
-//   },
-//   {
-//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-//     storeName: 'Магазин 3',
-//     itemName: 'Товар 1',
-//     price: 120,
-//     maxPrice: 120,
-//     status: 'Принята'
-//   },
-//   {
-//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-//     storeName: 'Магазин 3',
-//     itemName: 'Товар 1',
-//     price: 120,
-//     maxPrice: 120,
-//     status: 'Принята'
-//   },
-//   {
-//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-//     storeName: 'Магазин 3',
-//     itemName: 'Товар 1',
-//     price: 120,
-//     maxPrice: 120,
-//     status: 'Принята'
-//   },
-//   {
-//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-//     storeName: 'Магазин 3',
-//     itemName: 'Товар 1',
-//     price: 120,
-//     maxPrice: 120,
-//     status: 'Принята'
-//   }
-// ]

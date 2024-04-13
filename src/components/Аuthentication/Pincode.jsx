@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   Box,
   TextField,
@@ -67,42 +67,6 @@ const PinCodeInput = ({ method, email, code, setConfrim }) => {
       navigate('/')
     }
   })
-
-  // const {
-  //   mutate: registerConfirmUser,
-  //   data: registerData,
-  //   isLoading: isLoadingRegister,
-  //   fetchError: fetchErrorRegister
-  // } = useMutation(postRegistrationConfirm, {
-  //   onSuccess: () => {
-  //     // Handle successful registration (e.g., redirect to login)
-  //     console.log('Registration confirm successful!')
-  //     saveJWT(registerData)
-  //     saveEmail(email)
-  //     navigate('/')
-  //   },
-  //   onError: (error) => {
-  //     console.error('Registration confirm failed:', error)
-  //   }
-  // })
-
-  // const {
-  //   mutate: authConfirmUser,
-  //   data,
-  //   isLoading: isLoadingLogin,
-  //   fetchError: fetchErrorLogin
-  // } = useMutation(postAuthConfirm, {
-  //   onSuccess: () => {
-  //     // Handle successful registration (e.g., redirect to login)
-  //     console.log('Login confirm successful!' + data)
-  //     saveJWT(data)
-  //     saveEmail(email)
-  //     navigate('/')
-  //   },
-  //   onError: (error) => {
-  //     console.error('Login confirm failed:', error)
-  //   }
-  // })
 
   const inputRefs = Array(6)
     .fill(null)
