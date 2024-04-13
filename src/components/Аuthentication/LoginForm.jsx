@@ -37,12 +37,7 @@ const LoginForm = () => {
     if (localStorage.getItem('access_token')) navigate('/')
   }, [])
 
-  const {
-    mutate: loginUser,
-    data,
-    isLoading,
-    error
-  } = useMutation(postAuth, {
+  const loginUser = useMutation(postAuth, {
     onSuccess: () => {
       // Handle successful login
       console.log('Login successful!')
@@ -59,7 +54,7 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await loginUser(formData)
+    await loginUser.mutate(formData)
   }
 
   return (
@@ -95,11 +90,19 @@ const LoginForm = () => {
               name='email'
               value={formData.email}
               onChange={handleChange}
-              error={error}
+              error={loginUser.error}
               autoComplete='off'
             />
-            <Button type='submit' variant='contained' disabled={isLoading}>
-              {isLoading ? <CircularProgress sx={{ mt: 2 }} /> : 'Войти'}
+            <Button
+              type='submit'
+              variant='contained'
+              disabled={loginUser.isLoading}
+            >
+              {loginUser.isLoading ? (
+                <CircularProgress sx={{ mt: 2 }} />
+              ) : (
+                'Войти'
+              )}
             </Button>
             <Typography>
               У вас ещё нет аккаунта?&nbsp;

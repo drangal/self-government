@@ -40,12 +40,7 @@ const RegistrationForm = () => {
   })
   const [confrim, setConfrim] = useState(false)
 
-  const {
-    mutate: registerUser,
-    data,
-    isLoading,
-    error
-  } = useMutation(postRegistration, {
+  const registerUser = useMutation(postRegistration, {
     onSuccess: () => {
       // Handle successful registration (e.g., redirect to login)
       console.log('Registration successful!')
@@ -62,7 +57,7 @@ const RegistrationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    await registerUser(formData)
+    await registerUser.mutate(formData)
   }
 
   return (
@@ -119,11 +114,15 @@ const RegistrationForm = () => {
               name='email'
               value={formData.email}
               onChange={handleChange}
-              error={error}
+              error={registerUser.error}
               autoComplete='off'
             />
-            <Button type='submit' variant='contained' disabled={isLoading}>
-              {isLoading ? (
+            <Button
+              type='submit'
+              variant='contained'
+              disabled={registerUser.isLoading}
+            >
+              {registerUser.isLoading ? (
                 <CircularProgress sx={{ mt: 2 }} />
               ) : (
                 'Зарегистрироваться'

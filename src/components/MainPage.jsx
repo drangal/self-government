@@ -8,7 +8,9 @@ import {
   IconButton,
   InputAdornment,
   InputLabel,
+  LinearProgress,
   OutlinedInput,
+  Pagination,
   Stack,
   ToggleButton,
   ToggleButtonGroup,
@@ -24,83 +26,34 @@ import AutoAwesomeMotionIcon from '@mui/icons-material/AutoAwesomeMotion'
 import AssignmentLateIcon from '@mui/icons-material/AssignmentLate'
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn'
 import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline'
+import axios from 'axios'
+import { useQuery } from 'react-query'
 
-const data = [
-  {
-    photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-    storeName: 'Магазин 1',
-    itemName: 'Товар 1',
-    price: 100,
-    maxPrice: 120,
-    status: 'В рассмотрении'
-  },
-  {
-    photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.pn',
-    storeName: 'Магазин 2',
-    itemName: 'Товар 1',
-    price: 130,
-    maxPrice: 120,
-    status: 'Отклонена'
-  },
-  {
-    photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-    storeName: 'Магазин 3',
-    itemName: 'Товар 1',
-    price: 120,
-    maxPrice: 120,
-    status: 'Принята'
-  },
-  {
-    photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-    storeName: 'Магазин 3',
-    itemName: 'Товар 1',
-    price: 120,
-    maxPrice: 120,
-    status: 'Принята'
-  },
-  {
-    photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-    storeName: 'Магазин 3',
-    itemName: 'Товар 1',
-    price: 120,
-    maxPrice: 120,
-    status: 'Принята'
-  },
-  {
-    photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-    storeName: 'Магазин 3',
-    itemName: 'Товар 1',
-    price: 120,
-    maxPrice: 120,
-    status: 'Принята'
-  },
-  {
-    photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-    storeName: 'Магазин 3',
-    itemName: 'Товар 1',
-    price: 120,
-    maxPrice: 120,
-    status: 'Принята'
-  },
-  {
-    photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-    storeName: 'Магазин 3',
-    itemName: 'Товар 1',
-    price: 120,
-    maxPrice: 120,
-    status: 'Принята'
-  },
-  {
-    photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
-    storeName: 'Магазин 3',
-    itemName: 'Товар 1',
-    price: 120,
-    maxPrice: 120,
-    status: 'Принята'
-  }
-]
+const BASE_URL =
+  'https://6c3556cd2312afd6be3e3133b35830e3.serveo.net/applications/'
+
+export const applicationsApi = axios.create({
+  baseURL: BASE_URL,
+  withCredentials: false
+})
+
+applicationsApi.defaults.headers.common = {
+  Authorization: `Bearer ${localStorage.getItem('access_token')}`
+}
+
+async function getAllApplications(offset) {
+  const { data } = await applicationsApi.get(`getAll?limit=10&offset=${offset}`)
+  return data.applications
+}
 
 export const MainPage = () => {
+  const [page, setPage] = useState(0)
+  const { data, isLoading, isError } = useQuery(
+    ['applications', page],
+    () => getAllApplications(page * 10),
+    { keepPreviousData: true }
+  )
+
   const navigate = useNavigate()
   const [searchText, setSearchText] = useState('')
   const [filteredData, setFilteredData] = useState(data)
@@ -109,6 +62,10 @@ export const MainPage = () => {
   useEffect(() => {
     if (!localStorage.getItem('access_token')) navigate('/login')
   }, [])
+
+  const handlePaginationChange = (event, value) => {
+    setPage(value)
+  }
 
   const handleChange = (event) => {
     setSearchText(event.target.value.toLowerCase())
@@ -121,17 +78,23 @@ export const MainPage = () => {
   }
 
   useEffect(() => {
-    const filtered = data.filter(
+    const filtered = data?.filter(
       (item) =>
-        (item.itemName.toLowerCase().includes(searchText) ||
-          item.storeName.toLowerCase().includes(searchText)) &&
-        item.status.includes(statuses)
+        (item.category.toLowerCase().includes(searchText) ||
+          item.name_product.toLowerCase().includes(searchText) ||
+          item.shop.name.toLowerCase().includes(searchText)) &&
+        `${item.status}`.includes(statuses)
     )
     setFilteredData(filtered)
-  }, [searchText, statuses])
+  }, [data, searchText, statuses])
 
   return (
-    <Box>
+    <Box
+      sx={{
+        background:
+          'linear-gradient(348deg, rgba(238,174,202,1) 0%, rgba(202,179,214,1) 14%, rgba(148,187,233,1) 100%)'
+      }}
+    >
       <AppBar
         position='static'
         sx={{
@@ -159,7 +122,12 @@ export const MainPage = () => {
           </Tooltip>
         </Toolbar>
       </AppBar>
-      <Container maxWidth='lg' sx={{ mt: { xs: 1, sm: 2, md: 4 } }}>
+      <Container
+        maxWidth='lg'
+        sx={{
+          mt: { xs: 1, sm: 2, md: 4 }
+        }}
+      >
         <Stack
           direction={'column'}
           justifyContent='center'
@@ -191,30 +159,117 @@ export const MainPage = () => {
             <ToggleButton value='' aria-label='all'>
               <AutoAwesomeMotionIcon />
             </ToggleButton>
-            <ToggleButton value='Принята' aria-label='good'>
+            <ToggleButton value='2' aria-label='good'>
               <AssignmentTurnedInIcon />
             </ToggleButton>
-            <ToggleButton value='Отклонена' aria-label='bad'>
+            <ToggleButton value='1' aria-label='bad'>
               <AssignmentLateIcon />
             </ToggleButton>
-            <ToggleButton value='В рассмотрении' aria-label='corrected'>
+            <ToggleButton value='0' aria-label='corrected'>
               <DriveFileRenameOutlineIcon />
             </ToggleButton>
           </ToggleButtonGroup>
         </Stack>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          flexWrap={'wrap'}
-          spacing={4}
-          useFlexGap
-          justifyContent={'flex-start'}
-          alignContent={'space-around'}
-        >
-          {filteredData.map((item) => (
-            <ApplicationCard key={item.id} {...item} />
-          ))}
-        </Stack>
+        {isLoading ? (
+          <LinearProgress />
+        ) : (
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            flexWrap={'wrap'}
+            spacing={4}
+            useFlexGap
+            justifyContent={'flex-start'}
+            alignContent={'space-around'}
+          >
+            {filteredData?.map((item) => (
+              <ApplicationCard key={item.id} {...item} />
+            ))}
+          </Stack>
+        )}
+        <Pagination
+          count={Math.ceil(data?.lenght / 10) || 0}
+          page={page}
+          onChange={handlePaginationChange}
+          variant='outlined'
+          shape='rounded'
+          sx={{ mt: 2 }}
+        />
       </Container>
     </Box>
   )
 }
+
+// const data = [
+//   {
+//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
+//     storeName: 'Магазин 1',
+//     itemName: 'Товар 1',
+//     price: 100,
+//     maxPrice: 120,
+//     status: 'В рассмотрении'
+//   },
+//   {
+//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.pn',
+//     storeName: 'Магазин 2',
+//     itemName: 'Товар 1',
+//     price: 130,
+//     maxPrice: 120,
+//     status: 'Отклонена'
+//   },
+//   {
+//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
+//     storeName: 'Магазин 3',
+//     itemName: 'Товар 1',
+//     price: 120,
+//     maxPrice: 120,
+//     status: 'Принята'
+//   },
+//   {
+//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
+//     storeName: 'Магазин 3',
+//     itemName: 'Товар 1',
+//     price: 120,
+//     maxPrice: 120,
+//     status: 'Принята'
+//   },
+//   {
+//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
+//     storeName: 'Магазин 3',
+//     itemName: 'Товар 1',
+//     price: 120,
+//     maxPrice: 120,
+//     status: 'Принята'
+//   },
+//   {
+//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
+//     storeName: 'Магазин 3',
+//     itemName: 'Товар 1',
+//     price: 120,
+//     maxPrice: 120,
+//     status: 'Принята'
+//   },
+//   {
+//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
+//     storeName: 'Магазин 3',
+//     itemName: 'Товар 1',
+//     price: 120,
+//     maxPrice: 120,
+//     status: 'Принята'
+//   },
+//   {
+//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
+//     storeName: 'Магазин 3',
+//     itemName: 'Товар 1',
+//     price: 120,
+//     maxPrice: 120,
+//     status: 'Принята'
+//   },
+//   {
+//     photo: 'https://tamali.net/forms/torg/cenniki/img/cennik60x65_barcode.png',
+//     storeName: 'Магазин 3',
+//     itemName: 'Товар 1',
+//     price: 120,
+//     maxPrice: 120,
+//     status: 'Принята'
+//   }
+// ]

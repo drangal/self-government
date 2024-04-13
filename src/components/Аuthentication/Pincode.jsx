@@ -41,41 +41,68 @@ const PinCodeInput = ({ method, email, code, setConfrim }) => {
   const [pinCode, setPinCode] = useState(['', '', '', '', '', ''])
   const [error, setError] = useState(false)
 
-  const {
-    mutate: registerConfirmUser,
-    data: registerData,
-    isLoading: isLoadingRegister,
-    fetchError: fetchErrorRegister
-  } = useMutation(postRegistrationConfirm, {
-    onSuccess: () => {
+  const mutationRegisterConfirmUser = useMutation(postRegistrationConfirm, {
+    onError: (error, variables, context) => {
+      // An error happened!
+      console.log(`rolling back optimistic update with id ${context.id}`)
+    },
+    onSuccess: (data, variables, context) => {
       // Handle successful registration (e.g., redirect to login)
       console.log('Registration confirm successful!')
-      saveJWT(registerData)
+      saveJWT(data)
       saveEmail(email)
       navigate('/')
+    }
+  })
+  const mutationAuthConfirmUser = useMutation(postAuthConfirm, {
+    onError: (error, variables, context) => {
+      // An error happened!
+      console.log(`rolling back optimistic update with id ${context.id}`)
     },
-    onError: (error) => {
-      console.error('Registration confirm failed:', error)
+    onSuccess: (data, variables, context) => {
+      // Handle successful login
+      console.log('Registration confirm successful!')
+      saveJWT(data)
+      saveEmail(email)
+      navigate('/')
     }
   })
 
-  const {
-    mutate: authConfirmUser,
-    data: loginData,
-    isLoading: isLoadingLogin,
-    fetchError: fetchErrorLogin
-  } = useMutation(postAuthConfirm, {
-    onSuccess: () => {
-      // Handle successful registration (e.g., redirect to login)
-      console.log('Login confirm successful!')
-      saveJWT(loginData)
-      saveEmail(email)
-      navigate('/')
-    },
-    onError: (error) => {
-      console.error('Login confirm failed:', error)
-    }
-  })
+  // const {
+  //   mutate: registerConfirmUser,
+  //   data: registerData,
+  //   isLoading: isLoadingRegister,
+  //   fetchError: fetchErrorRegister
+  // } = useMutation(postRegistrationConfirm, {
+  //   onSuccess: () => {
+  //     // Handle successful registration (e.g., redirect to login)
+  //     console.log('Registration confirm successful!')
+  //     saveJWT(registerData)
+  //     saveEmail(email)
+  //     navigate('/')
+  //   },
+  //   onError: (error) => {
+  //     console.error('Registration confirm failed:', error)
+  //   }
+  // })
+
+  // const {
+  //   mutate: authConfirmUser,
+  //   data,
+  //   isLoading: isLoadingLogin,
+  //   fetchError: fetchErrorLogin
+  // } = useMutation(postAuthConfirm, {
+  //   onSuccess: () => {
+  //     // Handle successful registration (e.g., redirect to login)
+  //     console.log('Login confirm successful!' + data)
+  //     saveJWT(data)
+  //     saveEmail(email)
+  //     navigate('/')
+  //   },
+  //   onError: (error) => {
+  //     console.error('Login confirm failed:', error)
+  //   }
+  // })
 
   const inputRefs = Array(6)
     .fill(null)
@@ -116,13 +143,13 @@ const PinCodeInput = ({ method, email, code, setConfrim }) => {
       setError(true)
     } else {
       if (method === 'registration')
-        registerConfirmUser({
+        mutationRegisterConfirmUser.mutate({
           email: email,
           role: 'controller',
           code: +pinCode.join('')
         })
       else
-        authConfirmUser({
+        mutationAuthConfirmUser.mutate({
           email: email,
           role: 'controller',
           code: +pinCode.join('')
@@ -144,7 +171,9 @@ const PinCodeInput = ({ method, email, code, setConfrim }) => {
             onChange={(e) => handleInputChange(e, index)}
             onKeyUp={(e) => handleInputChange(e, index)}
             error={
-              fetchErrorRegister || fetchErrorLogin || (error && index < 6)
+              mutationAuthConfirmUser.isError ||
+              mutationRegisterConfirmUser.isError ||
+              (error && index < 6)
             }
             sx={{
               width: 40,
@@ -158,21 +187,28 @@ const PinCodeInput = ({ method, email, code, setConfrim }) => {
         <Button
           variant='contained'
           onClick={handleSubmit}
-          disabled={isLoadingRegister || isLoadingLogin}
+          disabled={
+            mutationAuthConfirmUser.isLoading ||
+            mutationRegisterConfirmUser.isLoading
+          }
         >
           Проверить пин-код
         </Button>
 
         <IconButton
           onClick={() => setConfrim(false)}
-          disabled={isLoadingRegister || isLoadingLogin}
+          disabled={
+            mutationAuthConfirmUser.isLoading ||
+            mutationRegisterConfirmUser.isLoading
+          }
         >
           <Tooltip title='Сменить почту'>
             <Close />
           </Tooltip>
         </IconButton>
       </Box>
-      {(isLoadingRegister || isLoadingLogin) && (
+      {(mutationAuthConfirmUser.isLoading ||
+        mutationRegisterConfirmUser.isLoading) && (
         <CircularProgress sx={{ mt: 2 }} />
       )}
     </Box>
