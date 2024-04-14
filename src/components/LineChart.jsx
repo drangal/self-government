@@ -10,7 +10,6 @@ export default function ComplaintsChart() {
     { date: new Date('2023-06-01'), complaints: 2 },
     { date: new Date('2023-07-01'), complaints: 5 }
   ]
-
   return (
     <LineChart
       height={400}
@@ -18,12 +17,12 @@ export default function ComplaintsChart() {
       xAxis={[
         {
           scaleType: 'point',
-          data: data.map((complaint) => complaint.date.toLocaleDateString())
+          data: data?.map((complaint) => complaint.date.toLocaleDateString())
         }
       ]}
       series={[
         {
-          data: data.map((complaint) => complaint.complaints),
+          data: data?.map((complaint) => complaint.complaints),
           area: true
         }
       ]}

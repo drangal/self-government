@@ -83,11 +83,11 @@ export const ApplicationCard = ({
         </Box>
         <Typography
           variant='body2'
-          color={status === 0 ? 'orange' : status === 1 ? 'red' : 'green'}
+          color={status === 0 ? 'orange' : status === -1 ? 'red' : 'green'}
         >
           {status === 0
             ? 'В рассмотрении'
-            : status === 1
+            : status === -1
             ? 'Отклонена'
             : 'Принята'}
         </Typography>
